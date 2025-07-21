@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - KJEI's Institute</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .container {
+            margin-top: 40px;
+            margin-bottom: 80px;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">KJEI's Institute</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admission.html">Admission</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="feedback.html">Feedback</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Feedback Form -->
+    <div class="container">
+        <h2 class="text-center mb-4">Student Feedback</h2>
+        <form id="feedbackForm">
+            <div class="mb-3">
+                <input type="text" class="form-control" placeholder="Your Name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control" placeholder="Your Feedback" name="feedback" rows="4" required></textarea>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary" onclick="addFeedback()">Submit Feedback</button>
+                <button type="button" class="btn btn-success" onclick="downloadFeedback()">Download as Excel</button>
+            </div>
+        </form>
+
+        <hr class="my-4">
+
+        <h4 class="mb-3">All Feedback:</h4>
+        <ul class="list-group" id="feedbackList"></ul>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 KJEI's Institute | Email: info@kjei.edu.in
+    </footer>
+
+    <script>
+        function addFeedback() {
+            const name = document.querySelector('[name="name"]').value.trim();
+            const feedback = document.querySelector('[name="feedback"]').value.trim();
+            const timestamp = new Date().toLocaleString();
+
+            if (!name || !feedback) return;
+
+            const feedbackData = JSON.parse(localStorage.getItem("feedbacks") || "[]");
+            feedbackData.push({ name, feedback, timestamp });
+            localStorage.setItem("feedbacks", JSON.stringify(feedbackData));
+
+            displayFeedback();
+            document.getElementById("feedbackForm").reset();
+        }
+
+        function displayFeedback() {
+            const feedbackList = document.getElementById("feedbackList");
+            feedbackList.innerHTML = "";
+            const feedbackData = JSON.parse(localStorage.getItem("feedbacks") || "[]");
+
+            feedbackData.forEach((item, index) => {
+                const listItem = document.createElement("li");
+                listItem.className = "list-group-item d-flex justify-content-between align-items-start";
+                listItem.innerHTML = `<div><strong>${item.name}</strong> (${item.timestamp}):<br>${item.feedback}</div>
+                              <button class='btn btn-sm btn-danger' onclick='deleteFeedback(${index})'>Delete</button>`;
+                feedbackList.appendChild(listItem);
+            });
+        }
+
+        function deleteFeedback(index) {
+            const feedbackData = JSON.parse(localStorage.getItem("feedbacks") || "[]");
+            feedbackData.splice(index, 1);
+            localStorage.setItem("feedbacks", JSON.stringify(feedbackData));
+            displayFeedback();
+        }
+
+        function downloadFeedback() {
+            const feedbackData = JSON.parse(localStorage.getItem("feedbacks") || "[]");
+            const worksheetData = [["Name", "Feedback", "Timestamp"]];
+
+            feedbackData.forEach(item => {
+                worksheetData.push([item.name, item.feedback, item.timestamp]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Feedback");
+
+            XLSX.writeFile(workbook, "KJEI_Student_Feedback.xlsx");
+        }
+
+        // Initial load
+        window.onload = displayFeedback;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
